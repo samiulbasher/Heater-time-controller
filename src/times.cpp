@@ -40,7 +40,8 @@ void setTime()
   rtc.time(t);
 }
 
-String readTime() {
+String readTime() 
+{
   // Get the current time and date from the chip.
   Time t = rtc.time();
 
