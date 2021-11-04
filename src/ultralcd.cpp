@@ -14,9 +14,6 @@ LiquidCrystal lcd(LCD_RS, LCD_EN, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
 
 char jpconv[64]; //english to japanese conversion
 
-int8_t incrementalMode = 0;
-int8_t temp_incrementalMode = 0;
-int8_t heaterTypeSection = 0; 
 
 void lcdProgMemprint(const char *str)
 {
