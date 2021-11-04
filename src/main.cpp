@@ -37,8 +37,5 @@ void loop() {
   // put your main code here, to run repeatedly:
   rotary_buttons_update();
 	lcd_update();
-
-  // readTime();
-  // delay(1000);
 }
 

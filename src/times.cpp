@@ -49,7 +49,6 @@ String readTime() {
   second = t.sec;
 
   day = t.day;
-  //Serial.println(DAY[day]);
 
   year = t.yr;
   month = t.mon;

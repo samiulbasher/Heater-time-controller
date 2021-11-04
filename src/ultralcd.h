@@ -46,13 +46,14 @@
  }; 
 
  enum SET_DATE_TIME_MENU {
-    BACK_MENU,
+    DATE_TIME_BACK_MENU,
     SET_DAY,
     SET_TIME,
     SET_DATE
  };
 
  enum SET_ALARM_MENU {
+    ALARM_BACK_MENU,
     SET_ALARM_1,
     SET_ALARM_2,
     SET_ALARM_3

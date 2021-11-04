@@ -50,6 +50,9 @@ uint32_t encoderPosition;
 uint32_t lastEncoderPosition = 1;
 uint8_t lastEncoderBits;
 
+
+uint32_t selection_jumping_millis;
+
 volatile uint8_t buttons; //Contains the bits of the currently pressed buttons.
 uint32_t previous_millis_cursor = 0;
 
@@ -68,13 +71,14 @@ SETTING_MENU settingMenuItem; //main manu
 uint8_t totalSettingMenuItem = (RESET_SET_ALARM - SET_DATE_TIME); //last menu item - fast menu item 
 
 SET_DATE_TIME_MENU dateTimeMenuItem; 
-uint8_t totalDateTimeMenuItem = (SET_DATE - BACK_MENU);
+uint8_t totalDateTimeMenuItem = (SET_DATE - DATE_TIME_BACK_MENU);
 
 SET_ALARM_MENU alarmMenuItem;
-uint8_t totalAlarmMenuItem = (SET_ALARM_3 - BACK_MENU);
+uint8_t totalAlarmMenuItem = (SET_ALARM_3 - ALARM_BACK_MENU);
 
 uint8_t daySection_Counter = 0;
-uint8_t incrementalMode_Counter = 0;
+uint8_t timeSecltion_Counter = 0;
+uint16_t dateSecltion_Counter = 0;
 
 float temp_homingOffset = 0;
 
@@ -374,11 +378,11 @@ void settingMenu()
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
-        // settingMenuFlag = false;
-        // dateTimeMenuFlag = false;  
-        // alarmMenuFlag = true; 
-        // manuallySelectAlarmMenu = true;
-        //alarmMenuItem = (SET_ALARM_MENU) HEATER_CUTTING;
+        settingMenuFlag = false;
+        dateTimeMenuFlag = false;  
+        alarmMenuFlag = true; 
+        manuallySelectAlarmMenu = true;
+        alarmMenuItem = (SET_ALARM_MENU) SET_ALARM_1;
       }
     }
     break;
@@ -409,7 +413,7 @@ void setDateTimeMenu()
 {
   switch(dateTimeMenuItem)
   { 
-    case BACK_MENU:
+    case DATE_TIME_BACK_MENU:
     { 
       printChar(BACK, 0, 0);
       printStr(jp(" SET DATE TIME "));   
@@ -419,6 +423,8 @@ void setDateTimeMenu()
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
+        statusFlag = true;
+        settingMenuFlag = true;
       }
     }
     break;
@@ -441,48 +447,282 @@ void setDateTimeMenu()
       }
       else
       {
-        if(encoderPosition > lastEncoderPosition && daySection_Counter < 4)   { daySection_Counter +=1; }
-        if(encoderPosition < lastEncoderPosition && daySection_Counter > 0)   { daySection_Counter -=1; }
+        printStr(jp("   SELECT DAY   "), 0 ,0);
+
+        if(encoderPosition > lastEncoderPosition && daySection_Counter < 7)   { daySection_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition && daySection_Counter > 1)   { daySection_Counter -=1; }
+
+        switch (daySection_Counter)
+        {
+          case 1:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Sunday          "));
+            break;
+          case 2:
+            printChar(ARROW, 0, 1);
+             printStr(jp("Monday          "));
+            break;
+          case 3:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Tuesday         "));
+            break;
+          case 4:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Wednesday       "));
+            break;
+          case 5:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Thursday        "));
+            break;
+          case 6:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Friday          "));
+            break;
+          case 7:
+             printChar(ARROW, 0, 1);
+             printStr(jp("Saturday        "));
+            break;
+        }   
       }
-
-
       if(buttonPressed) // go to submenu
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
         buttonPressedCount++;
+  
         if(buttonPressedCount >= 2)
         {
-
+          buttonPressedCount = 0;
+          day = daySection_Counter;
+          Serial.println(day);
+          setTime(); //update date time
+          dateTimeMenuFlag = true; 
+          manuallySelectDateTimeMenu = true; 
+          dateTimeMenuItem = (SET_DATE_TIME_MENU) SET_TIME;
         }
+        daySection_Counter = day;
       }
     }
     break;
 
     case SET_TIME:
     { 
-      printStr(jp(" Set Day       ^"), 0 ,0);   
-      printChar(ARROW, 0, 1);
-      printStr(jp( "Set Time       "));
-      printChar(DOWN, 15, 1);   
-      if(buttonPressed) // go to submenu
+      uint8_t select = 0;
+      if (buttonPressedCount != 0) 
+      {
+        select = 1;
+        manuallySelectDateTimeMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printStr(jp(" Set Day       ^"), 0 ,0);   
+        printChar(ARROW, 0, 1);
+        printStr(jp( "Set Time       "));
+        printChar(DOWN, 15, 1);  
+      } 
+      else
+      {
+        printStr(jp("  SELECT TIME   "), 0 ,0);
+
+        if(encoderPosition > lastEncoderPosition )   { timeSecltion_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition )   { timeSecltion_Counter -=1; }
+
+        if(buttonPressedCount == 1) // for hour
+        {
+          if(timeSecltion_Counter > 23)
+           timeSecltion_Counter = 23;
+          if(timeSecltion_Counter < 0)
+           timeSecltion_Counter = 0;
+        }
+        else // for min and sec
+        {
+          if(timeSecltion_Counter > 59)
+           timeSecltion_Counter = 59;
+          if(timeSecltion_Counter < 0)
+           timeSecltion_Counter = 0;
+        }
+      
+        char tempTime[10];
+        snprintf(tempTime, sizeof(tempTime), "%02d:%02d:%02d", hour, minute, second);
+
+        switch(buttonPressedCount)
+        {
+          case 1:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 3 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempTime), 3 ,1);
+             hour = timeSecltion_Counter; 
+            break; 
+          case 2:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 6 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempTime), 3 ,1);
+             minute = timeSecltion_Counter; 
+            break; 
+          case 3:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 9 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempTime), 3 ,1);
+             second = timeSecltion_Counter; 
+            break; 
+        }
+      }
+
+      if(buttonPressed) 
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
+        buttonPressedCount++;
+        if(buttonPressedCount == 1) // hour select
+        {
+          lcd.clear();
+          timeSecltion_Counter = hour;
+        }
+        if(buttonPressedCount == 2) // min select
+        {
+          //lcd.clear();
+          timeSecltion_Counter = minute;
+        }
+        if(buttonPressedCount == 3) // sec select
+        {
+          //lcd.clear();
+          timeSecltion_Counter = second;
+        }
+        if(buttonPressedCount == 4) // end 
+        {
+          buttonPressedCount=0;
+          setTime(); //update date time
+          dateTimeMenuFlag = true; 
+          manuallySelectDateTimeMenu = true; 
+          dateTimeMenuItem = (SET_DATE_TIME_MENU) SET_DATE;
+        }
       }
     }
     break;
     
     case SET_DATE:
     { 
-      printStr(jp(" Set Time      ^"), 0 ,0);   
-      printChar(ARROW, 0, 1);
-      printStr(jp( "Set Date       "));
+           uint8_t select = 0;
+      if (buttonPressedCount != 0) 
+      {
+        select = 1;
+        manuallySelectDateTimeMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printStr(jp(" Set Time      ^"), 0 ,0);   
+        printChar(ARROW, 0, 1);
+        printStr(jp( "Set Date       "));
+      }
+      else
+      {
+        printStr(jp("  SELECT DATE   "), 0 ,0);
 
-      if(buttonPressed) // go to submenu
+        if(encoderPosition > lastEncoderPosition )   { dateSecltion_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition )   { dateSecltion_Counter -=1; }
+
+        if(buttonPressedCount == 1) // for year
+        {
+          if(dateSecltion_Counter > 2099)
+           dateSecltion_Counter = 2099;
+          if(dateSecltion_Counter < 2000)
+           dateSecltion_Counter = 2000;
+        }
+        if(buttonPressedCount == 2) // for month
+        {
+          if(dateSecltion_Counter > 12)
+           dateSecltion_Counter = 12;
+          if(dateSecltion_Counter < 1)
+           dateSecltion_Counter = 1;
+        }
+        if(buttonPressedCount == 3) // for date
+        {
+          if(dateSecltion_Counter > 31)
+           dateSecltion_Counter = 31;
+          if(dateSecltion_Counter < 1)
+           dateSecltion_Counter = 1;
+        }
+
+        char tempDate[12];
+        snprintf(tempDate, sizeof(tempDate), "%04d/%02d/%02d", year, month, date);
+
+        switch(buttonPressedCount)
+        {
+          case 1:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("    "), 3 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempDate), 3,1);
+             year = dateSecltion_Counter; 
+            break; 
+          case 2:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 8 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempDate), 3 ,1);
+             month = dateSecltion_Counter; 
+            break; 
+          case 3:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 11 ,1);
+              selection_jumping_millis = millis() + 500; 
+             }
+             else
+              printStr(jp(tempDate), 3 ,1);
+             date = dateSecltion_Counter; 
+            break; 
+        }
+      }
+
+      if(buttonPressed) 
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
+        buttonPressedCount++;
+        if(buttonPressedCount == 1) // year select
+        {
+          lcd.clear();
+          dateSecltion_Counter = year;
+        }
+        if(buttonPressedCount == 2) // month select
+        {
+          //lcd.clear();
+          dateSecltion_Counter = month;
+        }
+        if(buttonPressedCount == 3) // date select
+        {
+          //lcd.clear();
+          dateSecltion_Counter = date;
+        }
+        if(buttonPressedCount == 4) // end 
+        {
+          buttonPressedCount=0;
+          setTime(); //update date time
+          statusFlag = true;
+          settingMenuFlag = true;
+          dateTimeMenuFlag = false; 
+        }
       }
     }
     break;
@@ -491,26 +731,70 @@ void setDateTimeMenu()
 
 void setAlarmMenu()
 {
-  // switch(alarmMenuItem)
-  // { 
-  //   case SET_ALARM_1:
-  //   { 
+  switch(alarmMenuItem)
+  { 
+    case ALARM_BACK_MENU:
+    {
+      printChar(BACK, 0, 0);
+      printStr(jp("   SET ALARM   "));   
+      printStr(jp(" Set Alarm 1   "), 0 ,1);
+      printChar(DOWN, 15, 1);   
+      if(buttonPressed) // go to submenu
+      {
+        buttonReleased();
+        beeper(1,SHORT_BEEP);
+        statusFlag = true;
+        settingMenuFlag = true;
+      }
+    }
+    break;
+    case SET_ALARM_1:
+    { 
+      printChar(ARROW, 0, 0);
+      printStr(jp( "Set Alarm 1   ^"));   
+      printStr(jp(" Set Alarm 2    "), 0 ,1);
+      printChar(DOWN, 15, 1);   
+      if(buttonPressed) // go to submenu
+      {
+        buttonReleased();
+        beeper(1,SHORT_BEEP);
+        //statusFlag = true;
+        //settingMenuFlag = true;
+      }
+    }
+    break;
 
-  //   }
-  //   break;
+    case SET_ALARM_2:
+    { 
+      printStr(jp(" Set Alarm 1   ^"), 0 ,0);   
+      printChar(ARROW, 0, 1);
+      printStr(jp( "Set Alarm 2    "));
+      printChar(DOWN, 15, 1);  
+      if(buttonPressed) // go to submenu
+      {
+        buttonReleased();
+        beeper(1,SHORT_BEEP);
+        //statusFlag = true;
+        //settingMenuFlag = true;
+      } 
+    }
+    break;
 
-  //   case SET_ALARM_2:
-  //   { 
-      
-  //   }
-  //   break;
-
-  //   case SET_ALARM_3:
-  //   { 
-      
-  //   }
-  //   break;
-  // }
+    case SET_ALARM_3:
+    { 
+      printStr(jp(" Set Alarm 2   ^"), 0 ,0);   
+      printChar(ARROW, 0, 1);
+      printStr(jp( "Set Alarm 3    ")); 
+      if(buttonPressed) // go to submenu
+      {
+        buttonReleased();
+        beeper(1,SHORT_BEEP);
+        //statusFlag = true;
+        //settingMenuFlag = true;
+      }
+    }
+    break;
+  }
 }
 
 
