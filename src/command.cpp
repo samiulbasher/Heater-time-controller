@@ -47,7 +47,7 @@ void Save_eeprom()  {
   addr += EEPROM_writeAnything(addr, alarm3_hour);     //"alarm3_hour" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm3_minute);   //"alarm3_minute" declared as a extern variable in ultralcd.h
 
-  Serial.println("\nSaving data to the eeprom...");
+  Serial.println("Saving data to the eeprom...");
 }
 
 void Load_eeprom()  {

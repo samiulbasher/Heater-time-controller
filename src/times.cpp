@@ -5,7 +5,6 @@
 #include "DS1302.h"
 #include "pins.h"
 
-
 // Create a DS1302 object.
 DS1302 rtc(CLK, DAT, RST);
 
@@ -28,7 +27,6 @@ void rtc_Init()
   // datasheet for details.
   rtc.writeProtect(false);
   rtc.halt(false);
-
 }
 
 
@@ -45,6 +43,7 @@ String readTime()
   // Get the current time and date from the chip.
   Time t = rtc.time();
 
+  // Get data from ds1302
   hour = t.hr;
   minute =t.min;
   second = t.sec;
@@ -55,8 +54,6 @@ String readTime()
   month = t.mon;
   date = t.date;
 
-  // Name the day of the week.
-  //const String day = dayAsString(t.day);
 
   // Format the time and date and insert into the temporary buffer.
   
