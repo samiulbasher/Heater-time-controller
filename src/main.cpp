@@ -7,9 +7,14 @@
 #include "config.h"
 #include "avrgpio.h"
 #include "ultralcd.h"
+#include "command.h"
 #include "DS1302.h"
 #include "times.h"
 
+uint8_t update_eeprom = false;
+uint32_t heaterDisableTime = 0;
+
+uint8_t heaterOnFlag = false;
 
 void setup() 
 {
@@ -28,8 +33,32 @@ void setup()
   delay(2000);
   lcd_clear();
 
-  readTime();
-  setTime();
+  Load_eeprom(); //load data from eeprom
+  //alarm 1 hour and min
+	if(isnan(alarm1_hour)) {
+	 alarm1_hour = 0;
+	}
+	if(isnan(alarm1_minute)) {
+	 alarm1_minute = 0;
+	}
+  
+  //alarm 2 hour and min
+	if(isnan(alarm2_hour)) {
+	 alarm2_hour = 0;
+	}
+	if(isnan(alarm2_minute)) {
+	 alarm2_minute = 0;
+	}
+
+  //alarm 3 hour and min
+  if(isnan(alarm3_hour)) {
+	 alarm3_hour = 0;
+	}
+	if(isnan(alarm3_minute)) {
+	 alarm3_minute = 0;
+	}
+
+  readTime(); //read time from DS1302
 }
 
 
@@ -37,5 +66,19 @@ void loop() {
   // put your main code here, to run repeatedly:
   rotary_buttons_update();
 	lcd_update();
+
+  if(update_eeprom){
+	 update_eeprom = false;
+	 Save_eeprom();
+	}
+
+  if(heaterOnFlag)
+  {
+    if(millis() > heaterDisableTime + 1000L* 60) //after turn on the heater, heater will turn off in 30min
+	  {
+      heaterOnFlag = false;
+      digitalWrite(HEATER_ON_PIN, LOW);
+    }
+  }
 }
 

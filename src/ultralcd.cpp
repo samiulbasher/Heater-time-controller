@@ -76,6 +76,16 @@ uint8_t totalAlarmMenuItem = (SET_ALARM_3 - ALARM_BACK_MENU);
 uint8_t daySection_Counter = 0;
 uint8_t timeSecltion_Counter = 0;
 uint16_t dateSecltion_Counter = 0;
+uint8_t alarmSecltion_Counter = 0;
+
+uint8_t alarm1_hour = 0;
+uint8_t alarm1_minute  = 0;
+
+uint8_t alarm2_hour = 0;
+uint8_t alarm2_minute  = 0;
+
+uint8_t alarm3_hour = 0;
+uint8_t alarm3_minute  = 0;
 
 float temp_homingOffset = 0;
 
@@ -192,8 +202,59 @@ void statusUpdate()
 {
   if (lcd_next_update_millis < millis())
   {
+    uint8_t alarmHour, alarmMinute = 0;
+   
+    if(hour<= alarm3_hour && hour<= alarm2_hour && hour<= alarm3_hour)
+    {
+      if(hour <= alarm3_hour && alarm3_hour >= alarm2_hour && alarm3_hour >= alarm1_hour)
+      {  
+        if(minute <= alarm3_minute)
+        {
+          alarmHour = alarm3_hour; 
+          alarmMinute = alarm3_minute;
+        }
+      }
+      if(hour <= alarm2_hour && alarm2_hour >= alarm1_hour && alarm2_hour <= alarm3_hour)
+      {  
+        if(minute <= alarm2_minute)
+        {
+          alarmHour = alarm2_hour;
+          alarmMinute = alarm2_minute; 
+        }
+      }
+      if(hour <= alarm1_hour && alarm1_hour >= alarm2_hour  && alarm1_hour >= alarm3_hour)
+      {  
+        if(minute <= alarm1_minute)
+        {
+          alarmHour = alarm1_hour; 
+          alarmMinute = alarm1_minute;
+        }
+      }
+    }
+    else
+    {
+      alarmHour = alarm1_hour; 
+      alarmMinute = alarm1_minute;
+    }
+
+    if(alarmHour == hour && alarmMinute == minute)
+    {
+      if(!heaterOnFlag)
+      {
+        heaterOnFlag = true;
+        heaterDisableTime = 0; //reset time
+        beeper(1,LONG_BEEP);
+        digitalWrite(HEATER_ON_PIN,HIGH);
+      }
+    }
+
+
+    char alarmTime[6];
+    snprintf(alarmTime, sizeof(alarmTime), "%02d:%02d", alarmHour, alarmMinute);
+
     printStr(readTime(), 0, 0);
-    printStr( "NEXT T.ON: 12:00", 0, 1);
+    printStr("NEXT H.ON: _____", 0, 1);
+    printStr(alarmTime, 11, 1);
 
     lcd_next_update_millis = millis() + LCD_UPDATE_INTERVAL; 
   }
@@ -528,14 +589,14 @@ void setDateTimeMenu()
         if(buttonPressedCount == 1) // for hour
         {
           if(timeSecltion_Counter > 23)
-           timeSecltion_Counter = 23;
+           timeSecltion_Counter = 0;
           if(timeSecltion_Counter < 0)
            timeSecltion_Counter = 0;
         }
         else // for min and sec
         {
           if(timeSecltion_Counter > 59)
-           timeSecltion_Counter = 59;
+           timeSecltion_Counter = 0;
           if(timeSecltion_Counter < 0)
            timeSecltion_Counter = 0;
         }
@@ -549,7 +610,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("  "), 3 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempTime), 3 ,1);
@@ -559,7 +620,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("  "), 6 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempTime), 3 ,1);
@@ -569,7 +630,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("  "), 9 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempTime), 3 ,1);
@@ -612,7 +673,7 @@ void setDateTimeMenu()
     
     case SET_DATE:
     { 
-           uint8_t select = 0;
+      uint8_t select = 0;
       if (buttonPressedCount != 0) 
       {
         select = 1;
@@ -635,21 +696,21 @@ void setDateTimeMenu()
         if(buttonPressedCount == 1) // for year
         {
           if(dateSecltion_Counter > 2099)
-           dateSecltion_Counter = 2099;
+           dateSecltion_Counter = 2000;
           if(dateSecltion_Counter < 2000)
            dateSecltion_Counter = 2000;
         }
         if(buttonPressedCount == 2) // for month
         {
           if(dateSecltion_Counter > 12)
-           dateSecltion_Counter = 12;
+           dateSecltion_Counter = 1;
           if(dateSecltion_Counter < 1)
            dateSecltion_Counter = 1;
         }
         if(buttonPressedCount == 3) // for date
         {
           if(dateSecltion_Counter > 31)
-           dateSecltion_Counter = 31;
+           dateSecltion_Counter = 1;
           if(dateSecltion_Counter < 1)
            dateSecltion_Counter = 1;
         }
@@ -663,7 +724,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("    "), 3 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempDate), 3,1);
@@ -673,7 +734,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("  "), 8 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempDate), 3 ,1);
@@ -683,7 +744,7 @@ void setDateTimeMenu()
              if(selection_jumping_millis < millis())
              {
               printStr(jp("  "), 11 ,1);
-              selection_jumping_millis = millis() + 500; 
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
               printStr(jp(tempDate), 3 ,1);
@@ -743,57 +804,288 @@ void setAlarmMenu()
         statusFlag = true;
         settingMenuFlag = true;
       }
+
     }
     break;
     case SET_ALARM_1:
     { 
-      printChar(ARROW, 0, 0);
-      printStr(jp( "Set Alarm 1   ^"));   
-      printStr(jp(" Set Alarm 2    "), 0 ,1);
-      printChar(DOWN, 15, 1);   
-      if(buttonPressed) // go to submenu
+      uint8_t select = 0;
+      if (buttonPressedCount != 0) 
+      {
+        select = 1;
+        manuallySelectAlarmMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printChar(ARROW, 0, 0);
+        printStr(jp( "Set Alarm 1   ^"));   
+        printStr(jp(" Set Alarm 2    "), 0 ,1);
+        printChar(DOWN, 15, 1);   
+      }
+      else
+      {
+        printStr(jp("  SET ALARM 1  "), 0 ,0);
+
+        if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
+
+        if(buttonPressedCount == 1) // for hour
+        {
+          if(alarmSecltion_Counter > 23)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+        else // for min and sec
+        {
+          if(alarmSecltion_Counter > 59)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+
+        char alarm1_Time[10];
+        snprintf(alarm1_Time, sizeof(alarm1_Time), "%02d:%02d", alarm1_hour, alarm1_minute);
+
+        switch(buttonPressedCount)
+        {
+          case 1:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 5 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm1_Time), 5 ,1);
+             alarm1_hour = alarmSecltion_Counter; 
+            break; 
+          case 2:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 8 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm1_Time), 5 ,1);
+             alarm1_minute = alarmSecltion_Counter; 
+            break; 
+        }
+      }
+
+      if(buttonPressed)
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
-        //statusFlag = true;
-        //settingMenuFlag = true;
+        buttonPressedCount++;
+        if(buttonPressedCount == 1) // hour select
+        {
+          lcd.clear();
+          alarmSecltion_Counter = alarm1_hour;
+        }
+        if(buttonPressedCount == 2) // min select
+        {
+          //lcd.clear();
+          alarmSecltion_Counter = alarm1_minute;
+        }
+        if(buttonPressedCount == 3) // end 
+        {
+          buttonPressedCount=0;
+          update_eeprom = true;
+          alarmMenuFlag  = true; 
+          manuallySelectAlarmMenu = true; 
+          alarmMenuItem = (SET_ALARM_MENU) SET_ALARM_2;
+        }
       }
     }
     break;
 
     case SET_ALARM_2:
     { 
-      printStr(jp(" Set Alarm 1   ^"), 0 ,0);   
-      printChar(ARROW, 0, 1);
-      printStr(jp( "Set Alarm 2    "));
-      printChar(DOWN, 15, 1);  
-      if(buttonPressed) // go to submenu
+      uint8_t select = 0;
+      if (buttonPressedCount != 0) 
+      {
+        select = 1;
+        manuallySelectAlarmMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printStr(jp(" Set Alarm 1   ^"), 0 ,0);   
+        printChar(ARROW, 0, 1);
+        printStr(jp( "Set Alarm 2    "));
+        printChar(DOWN, 15, 1);  
+      }
+      else
+      {
+        printStr(jp("  SET ALARM 2  "), 0 ,0);
+
+        if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
+
+        if(buttonPressedCount == 1) // for hour
+        {
+          if(alarmSecltion_Counter > 23)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+        else // for min and sec
+        {
+          if(alarmSecltion_Counter > 59)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+
+        char alarm2_Time[10];
+        snprintf(alarm2_Time, sizeof(alarm2_Time), "%02d:%02d", alarm2_hour, alarm2_minute);
+
+        switch(buttonPressedCount)
+        {
+          case 1:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 5 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm2_Time), 5 ,1);
+             alarm2_hour = alarmSecltion_Counter; 
+            break; 
+          case 2:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 8 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm2_Time), 5 ,1);
+             alarm2_minute = alarmSecltion_Counter; 
+            break; 
+        }
+      }
+      
+      if(buttonPressed)
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
-        //statusFlag = true;
-        //settingMenuFlag = true;
-      } 
+        buttonPressedCount++;
+        if(buttonPressedCount == 1) // hour select
+        {
+          lcd.clear();
+          alarmSecltion_Counter = alarm2_hour;
+        }
+        if(buttonPressedCount == 2) // min select
+        {
+          //lcd.clear();
+          alarmSecltion_Counter = alarm2_minute;
+        }
+        if(buttonPressedCount == 3) // end 
+        {
+          buttonPressedCount=0;
+          update_eeprom = true;
+          alarmMenuFlag  = true; 
+          manuallySelectAlarmMenu = true; 
+          alarmMenuItem = (SET_ALARM_MENU) SET_ALARM_3;        
+        }
+      }
     }
     break;
 
     case SET_ALARM_3:
     { 
-      printStr(jp(" Set Alarm 2   ^"), 0 ,0);   
-      printChar(ARROW, 0, 1);
-      printStr(jp( "Set Alarm 3    ")); 
-      if(buttonPressed) // go to submenu
+      uint8_t select = 0;
+      if (buttonPressedCount != 0) 
+      {
+        select = 1;
+        manuallySelectAlarmMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printStr(jp(" Set Alarm 2   ^"), 0 ,0);   
+        printChar(ARROW, 0, 1);
+        printStr(jp( "Set Alarm 3    ")); 
+      }
+      else
+      {
+        printStr(jp("  SET ALARM 3  "), 0 ,0);
+
+        if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
+        if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
+
+        if(buttonPressedCount == 1) // for hour
+        {
+          if(alarmSecltion_Counter > 23)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+        else // for min and sec
+        {
+          if(alarmSecltion_Counter > 59)
+           alarmSecltion_Counter = 0;
+          if(alarmSecltion_Counter < 0)
+           alarmSecltion_Counter = 0;
+        }
+
+        char alarm3_Time[10];
+        snprintf(alarm3_Time, sizeof(alarm3_Time), "%02d:%02d", alarm3_hour, alarm3_minute);
+
+        switch(buttonPressedCount)
+        {
+          case 1:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 5 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm3_Time), 5 ,1);
+             alarm3_hour = alarmSecltion_Counter; 
+            break; 
+          case 2:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("  "), 8 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+              printStr(jp(alarm3_Time), 5 ,1);
+             alarm3_minute = alarmSecltion_Counter; 
+            break; 
+        }
+      }
+      
+      if(buttonPressed)
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
-        //statusFlag = true;
-        //settingMenuFlag = true;
+        buttonPressedCount++;
+        if(buttonPressedCount == 1) // hour select
+        {
+          lcd.clear();
+          alarmSecltion_Counter = alarm3_hour;
+        }
+        if(buttonPressedCount == 2) // min select
+        {
+          //lcd.clear();
+          alarmSecltion_Counter = alarm3_minute;
+        }
+        if(buttonPressedCount == 3) // end 
+        {
+          buttonPressedCount=0;
+          update_eeprom = true;
+          statusFlag = true;
+          settingMenuFlag = true;
+          alarmMenuFlag  = false;      
+        }
       }
     }
     break;
   }
 }
-
 
 
 /*

@@ -29,6 +29,8 @@
  #define LCD_UPDATE_INTERVAL 1000
  #define LCD_CURSOR_UPDATE_INTERVAL 50
  #define LCD_TIMEOUT_TO_STATUS 15000
+ #define LCD_JUMPING_INTERVAL 500
+
 
  #define LCD_WIDTH 16
  #define LCD_HEIGHT 2
@@ -60,12 +62,18 @@
  };
 
 
- extern float homingOffset; //this variable read from eeprom
- extern uint8_t cutting_delay; //this variable read from eeprom
  extern uint8_t update_eeprom;
- extern float previousHomingOffset; 
- extern int8_t heaterTypeSelect;//this variable read from eeprom
- extern int8_t heaterTypeSection;
+ extern uint8_t heaterOnFlag;
+ extern uint32_t heaterDisableTime;
+
+ extern uint8_t alarm1_hour;
+ extern uint8_t alarm1_minute;
+ extern uint8_t alarm2_hour;
+ extern uint8_t alarm2_minute;
+ extern uint8_t alarm3_hour;
+ extern uint8_t alarm3_minute;
+
+
 
 
  void rotaryEncoder_Init();
