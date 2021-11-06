@@ -74,7 +74,8 @@ void loop() {
 
   if(heaterOnFlag)
   {
-    if(millis() > heaterDisableTimerCounter + 1000L* 60 * 2) //after turn on the heater, heater will turn off in 30min
+    //After turning on the heater, the heater will turn off within 30 minutes
+    if(millis() > heaterDisableTimerCounter + 1000L* 60 * 30) 
 	  {
       heaterOnFlag = false;
       digitalWrite(HEATER_ON_PIN, LOW);
