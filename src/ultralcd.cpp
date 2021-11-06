@@ -65,7 +65,7 @@ int8_t last_rotaryIncrement = 0;
 int8_t currentPage = 0;
 
 SETTING_MENU settingMenuItem; //main manu
-uint8_t totalSettingMenuItem = (RESET_SET_ALARM - SET_DATE_TIME); //last menu item - fast menu item 
+uint8_t totalSettingMenuItem = (HEATER_OFF - SET_DATE_TIME); //last menu item - fast menu item 
 
 SET_DATE_TIME_MENU dateTimeMenuItem; 
 uint8_t totalDateTimeMenuItem = (SET_DATE - DATE_TIME_BACK_MENU);
@@ -202,49 +202,52 @@ void statusUpdate()
 {
   if (lcd_next_update_millis < millis())
   {
-    uint8_t alarmHour, alarmMinute = 0;
+    
+    uint8_t alarmHour = alarm1_hour; 
+    uint8_t alarmMinute = alarm1_minute;
    
-    if(hour<= alarm3_hour && hour<= alarm2_hour && hour<= alarm3_hour)
-    {
-      if(hour <= alarm3_hour && alarm3_hour >= alarm2_hour && alarm3_hour >= alarm1_hour)
-      {  
-        if(minute <= alarm3_minute)
-        {
-          alarmHour = alarm3_hour; 
-          alarmMinute = alarm3_minute;
-        }
-      }
-      if(hour <= alarm2_hour && alarm2_hour >= alarm1_hour && alarm2_hour <= alarm3_hour)
-      {  
-        if(minute <= alarm2_minute)
-        {
-          alarmHour = alarm2_hour;
-          alarmMinute = alarm2_minute; 
-        }
-      }
-      if(hour <= alarm1_hour && alarm1_hour >= alarm2_hour  && alarm1_hour >= alarm3_hour)
-      {  
-        if(minute <= alarm1_minute)
-        {
-          alarmHour = alarm1_hour; 
-          alarmMinute = alarm1_minute;
-        }
+    // if next alarm is in alarm3 then this if condition will work
+    if(hour <= alarm3_hour && alarm3_hour >= alarm2_hour && alarm3_hour >= alarm1_hour)
+    {  
+      if(minute <= alarm3_minute)
+      {
+        alarmHour = alarm3_hour; 
+        alarmMinute = alarm3_minute;
       }
     }
-    else
-    {
-      alarmHour = alarm1_hour; 
-      alarmMinute = alarm1_minute;
+
+    // if next alarm is in alarm2 then this if condition will work
+    if(hour <= alarm2_hour && alarm2_hour >= alarm1_hour && alarm2_hour <= alarm3_hour)
+    {  
+      if(minute <= alarm2_minute)
+      {
+        alarmHour = alarm2_hour;
+        alarmMinute = alarm2_minute; 
+      }
+    }
+
+    // if next alarm is in alarm1 then this if condition will work
+    if(hour <= alarm1_hour && alarm1_hour >= alarm2_hour  && alarm1_hour >= alarm3_hour)
+    {  
+      if(minute <= alarm1_minute)
+      {
+        alarmHour = alarm1_hour; 
+        alarmMinute = alarm1_minute;
+      }
     }
 
     if(alarmHour == hour && alarmMinute == minute)
     {
       if(!heaterOnFlag)
       {
-        heaterOnFlag = true;
-        heaterDisableTime = 0; //reset time
-        beeper(1,LONG_BEEP);
-        digitalWrite(HEATER_ON_PIN,HIGH);
+        // Heaters will not be [turn on] on Saturdays and Sundays
+        if(day != Time::SATURDAY && day != Time::SUNDAY)
+        {
+          heaterOnFlag = true;
+          heaterDisableTimerCounter = millis();
+          beeper(1,LONG_BEEP);
+          digitalWrite(HEATER_ON_PIN,HIGH);
+        }
       }
     }
 
@@ -445,22 +448,18 @@ void settingMenu()
     }
     break;
 
-    case RESET_SET_ALARM:
+    case HEATER_OFF:
     {
       printStr(jp(" Set alarm     ^"), 0, 0);   
       printChar(ARROW, 0, 1);
-      printStr(jp( "Reset alarm    "));
+      printStr(jp( "Heater Off     "));
   
       if(buttonPressed)
       {
-        
         buttonReleased();
         beeper(1,SHORT_BEEP);
         statusFlag = true;
-        // settingMenuFlag = false;
-        // dateTimeMenuFlag = false;  
-        // alarmMenuFlag = true; 
-        // manuallySelectAlarmMenu = true;
+        digitalWrite(HEATER_ON_PIN, LOW);
       }
     }
     break;

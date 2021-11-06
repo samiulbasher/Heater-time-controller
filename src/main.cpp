@@ -12,7 +12,7 @@
 #include "times.h"
 
 uint8_t update_eeprom = false;
-uint32_t heaterDisableTime = 0;
+uint32_t heaterDisableTimerCounter = 0;
 
 uint8_t heaterOnFlag = false;
 
@@ -74,7 +74,7 @@ void loop() {
 
   if(heaterOnFlag)
   {
-    if(millis() > heaterDisableTime + 1000L* 60) //after turn on the heater, heater will turn off in 30min
+    if(millis() > heaterDisableTimerCounter + 1000L* 60 * 2) //after turn on the heater, heater will turn off in 30min
 	  {
       heaterOnFlag = false;
       digitalWrite(HEATER_ON_PIN, LOW);
