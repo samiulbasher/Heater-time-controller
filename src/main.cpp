@@ -29,45 +29,10 @@ void setup()
   printStr("Firmware Ver:___", 0, 1);
   printFloat(FIRMWARE_VERSION, 13, 2);
   
-
   delay(2000);
   lcd_clear();
 
   Load_eeprom(); //load data from eeprom
-  
-  //alarm 1 hour and min
-	if(isnan(alarm1_hour)) {
-	 alarm1_hour = 0;
-	}
-	if(isnan(alarm1_minute)) {
-	 alarm1_minute = 0;
-	}
-  if(isnan(alarm1_OnOff_Flag)) {
-	 alarm1_OnOff_Flag = 0;
-	}
-  
-  //alarm 2 hour and min
-	if(isnan(alarm2_hour)) {
-	 alarm2_hour = 0;
-	}
-	if(isnan(alarm2_minute)) {
-	 alarm2_minute = 0;
-	}
-  if(isnan(alarm2_OnOff_Flag)) {
-	 alarm2_OnOff_Flag = 0;
-	}
-
-  //alarm 3 hour and min
-  if(isnan(alarm3_hour)) {
-	 alarm3_hour = 0;
-	}
-	if(isnan(alarm3_minute)) {
-	 alarm3_minute = 0;
-	}
-  if(isnan(alarm3_OnOff_Flag)) {
-	 alarm3_OnOff_Flag = 0;
-	}
-
   readTime(); //read time from DS1302
 }
 

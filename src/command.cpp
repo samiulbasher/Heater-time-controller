@@ -56,16 +56,27 @@ void Save_eeprom()  {
 void Load_eeprom()  {
   int addr = eepromAddr;
   addr += EEPROM_readAnything(addr, alarm1_hour);
+  if(isnan(alarm1_hour)) {  alarm1_hour = 0;  }
   addr += EEPROM_readAnything(addr, alarm1_minute);
+  if(isnan(alarm1_minute)) { alarm1_minute = 0; }
   addr += EEPROM_readAnything(addr, alarm1_OnOff_Flag);
+  if(isnan(alarm1_OnOff_Flag)) { alarm1_OnOff_Flag = 0; }
+
 
   addr += EEPROM_readAnything(addr, alarm2_hour);
+  if(isnan(alarm2_hour)) { alarm2_hour = 0; }
   addr += EEPROM_readAnything(addr, alarm2_minute);
+  if(isnan(alarm2_minute)) { alarm2_minute = 0; }
   addr += EEPROM_readAnything(addr, alarm2_OnOff_Flag);
+  if(isnan(alarm2_OnOff_Flag)) { alarm2_OnOff_Flag = 0; }
+
 
   addr += EEPROM_readAnything(addr, alarm3_hour);
+  if(isnan(alarm3_hour)) { alarm3_hour = 0; }
   addr += EEPROM_readAnything(addr, alarm3_minute);
+  if(isnan(alarm3_minute)) { alarm3_minute = 0; }
   addr += EEPROM_readAnything(addr, alarm3_OnOff_Flag);
+  if(isnan(alarm3_OnOff_Flag)) { alarm3_OnOff_Flag = 0; }
 }
 
 
