@@ -4,9 +4,10 @@
 #include <EEPROM.h>
 #include <math.h>
 
-#include "ultralcd.h"
 #include "pins.h"
 #include "config.h"
+#include "ultralcd.h"
+#include "heater.h"
 #include "DS1302.h"
 #include "times.h"
 
@@ -65,7 +66,7 @@ int8_t last_rotaryIncrement = 0;
 int8_t currentPage = 0;
 
 SETTING_MENU settingMenuItem; //main manu
-uint8_t totalSettingMenuItem = (HEATER_OFF - SET_DATE_TIME); //last menu item - fast menu item 
+uint8_t totalSettingMenuItem = (HEATER_ON_OFF - SET_DATE_TIME); //last menu item - fast menu item 
 
 SET_DATE_TIME_MENU dateTimeMenuItem; 
 uint8_t totalDateTimeMenuItem = (SET_DATE - DATE_TIME_BACK_MENU);
@@ -78,16 +79,21 @@ uint8_t timeSecltion_Counter = 0;
 uint16_t dateSecltion_Counter = 0;
 uint8_t alarmSecltion_Counter = 0;
 
+uint8_t alarm1_OnOff_Flag = 0;
 uint8_t alarm1_hour = 0;
 uint8_t alarm1_minute  = 0;
 
+uint8_t alarm2_OnOff_Flag = 0;
 uint8_t alarm2_hour = 0;
 uint8_t alarm2_minute  = 0;
 
+uint8_t alarm3_OnOff_Flag = 0;
 uint8_t alarm3_hour = 0;
 uint8_t alarm3_minute  = 0;
 
 float temp_homingOffset = 0;
+
+
 
 
 bool statusFlag = true;
@@ -238,16 +244,11 @@ void statusUpdate()
 
     if(alarmHour == hour && alarmMinute == minute)
     {
-      if(!heaterOnFlag)
+      if(!isHeaterOn())
       {
-        // Heaters will not be [turn on] on Saturdays and Sundays
-        if(day != Time::SATURDAY && day != Time::SUNDAY)
-        {
-          heaterOnFlag = true;
-          heaterDisableTimerCounter = millis();
-          beeper(1,LONG_BEEP);
-          digitalWrite(HEATER_ON_PIN,HIGH);
-        }
+        // Heaters will not be turned ON on Saturdays and Sundays
+        if(day != Time::SATURDAY && day != Time::SUNDAY)    
+          heaterOn();
       }
     }
 
@@ -413,7 +414,7 @@ void settingMenu()
     { 
       printStr(jp("      MENU      "), 0, 0); 
       printChar(ARROW, 0, 1);
-      printStr(jp( "Set date time ^"));   
+      printStr(jp( "Set datetime  ^"));   
       printChar(DOWN, 15, 1);       
       
       if(buttonPressed) 
@@ -431,7 +432,7 @@ void settingMenu()
 
     case SET_ALARM:
     {
-      printStr(jp(" Set date time ^"), 0, 0);   
+      printStr(jp(" Set datetime  ^"), 0, 0);   
       printChar(ARROW, 0, 1);
       printStr(jp( "Set alarm      "));
       printChar(DOWN, 15, 1);   
@@ -448,18 +449,49 @@ void settingMenu()
     }
     break;
 
-    case HEATER_OFF:
+    case HEATER_ON_OFF:
     {
-      printStr(jp(" Set alarm     ^"), 0, 0);   
-      printChar(ARROW, 0, 1);
-      printStr(jp( "Heater Off     "));
+      uint8_t select = 0;
+      if (buttonPressedCount == 1) 
+      {
+        select = 1;
+        manuallySelectDateTimeMenu = true;
+      }
+      
+      if(select == 0)
+      {
+        printStr(jp(" Set alarm     ^"), 0, 0);   
+        printChar(ARROW, 0, 1);
+        printStr(jp( "Heater on/off  "));
+      }
+      else
+      {
+        if(isHeaterOn())
+        {
+          printStr(jp(" Heater: [ON]   "), 0, 0);
+          printStr(jp("*Prs btn to OFF "), 0, 1);
+        }
+        else
+        {
+          printStr(jp(" Heater: [OFF]  "), 0, 0);
+          printStr(jp("*Prs btn to ON  "), 0, 1);
+        }
+      }
   
       if(buttonPressed)
       {
         buttonReleased();
         beeper(1,SHORT_BEEP);
-        statusFlag = true;
-        digitalWrite(HEATER_ON_PIN, LOW);
+        buttonPressedCount++;
+        if(buttonPressedCount >= 2)
+        {
+          statusFlag = true;
+          buttonPressedCount = 0;
+          if(isHeaterOn())
+            heaterOff();
+          else
+            heaterOn();
+        }
       }
     }
     break;
@@ -551,7 +583,7 @@ void setDateTimeMenu()
         {
           buttonPressedCount = 0;
           day = daySection_Counter;
-          Serial.println(day);
+          //Serial.println(day);
           setTime(); //update date time
           dateTimeMenuFlag = true; 
           manuallySelectDateTimeMenu = true; 
@@ -824,7 +856,7 @@ void setAlarmMenu()
       }
       else
       {
-        printStr(jp("  SET ALARM 1  "), 0 ,0);
+        printStr(jp("   SET ALARM 1  "), 0 ,0);
 
         if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
         if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
@@ -836,12 +868,17 @@ void setAlarmMenu()
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
         }
-        else // for min and sec
+        if(buttonPressedCount == 2)  // for min and sec
         {
           if(alarmSecltion_Counter > 59)
            alarmSecltion_Counter = 0;
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
+        }
+        if(buttonPressedCount == 3) // for alarm on or off
+        {
+          if(encoderPosition > lastEncoderPosition) { alarm1_OnOff_Flag = 1;}
+          if(encoderPosition < lastEncoderPosition) { alarm1_OnOff_Flag = 0;}
         }
 
         char alarm1_Time[10];
@@ -852,23 +889,50 @@ void setAlarmMenu()
           case 1:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 5 ,1);
+              printStr(jp("  "), 2 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm1_Time), 5 ,1);
+             {
+              printStr(jp(alarm1_Time), 2 ,1);
+              if(alarm1_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm1_hour = alarmSecltion_Counter; 
             break; 
           case 2:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 8 ,1);
+              printStr(jp("  "), 5 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm1_Time), 5 ,1);
+             {
+              printStr(jp(alarm1_Time), 2 ,1);
+              if(alarm1_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm1_minute = alarmSecltion_Counter; 
             break; 
+          case 3:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("     "), 10 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+             {
+              printStr(jp(alarm1_Time), 2 ,1);
+              if(alarm1_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
+            break;
         }
       }
 
@@ -887,7 +951,7 @@ void setAlarmMenu()
           //lcd.clear();
           alarmSecltion_Counter = alarm1_minute;
         }
-        if(buttonPressedCount == 3) // end 
+        if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
           update_eeprom = true;
@@ -917,7 +981,7 @@ void setAlarmMenu()
       }
       else
       {
-        printStr(jp("  SET ALARM 2  "), 0 ,0);
+        printStr(jp("   SET ALARM 2  "), 0 ,0);
 
         if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
         if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
@@ -929,12 +993,17 @@ void setAlarmMenu()
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
         }
-        else // for min and sec
+        if(buttonPressedCount == 2) // for min and sec
         {
           if(alarmSecltion_Counter > 59)
            alarmSecltion_Counter = 0;
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
+        }
+        if(buttonPressedCount == 3) // for alarm on or off
+        {
+          if(encoderPosition > lastEncoderPosition) { alarm2_OnOff_Flag = 1;}
+          if(encoderPosition < lastEncoderPosition) { alarm2_OnOff_Flag = 0;}
         }
 
         char alarm2_Time[10];
@@ -945,23 +1014,50 @@ void setAlarmMenu()
           case 1:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 5 ,1);
+              printStr(jp("  "), 2 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm2_Time), 5 ,1);
+             {
+              printStr(jp(alarm2_Time), 2 ,1);
+              if(alarm2_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm2_hour = alarmSecltion_Counter; 
             break; 
           case 2:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 8 ,1);
+              printStr(jp("  "), 5 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm2_Time), 5 ,1);
+             {
+              printStr(jp(alarm2_Time), 2 ,1);
+              if(alarm2_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm2_minute = alarmSecltion_Counter; 
             break; 
+          case 3:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("     "), 10 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+             {
+              printStr(jp(alarm2_Time), 2 ,1);
+              if(alarm2_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
+            break;
         }
       }
       
@@ -980,7 +1076,7 @@ void setAlarmMenu()
           //lcd.clear();
           alarmSecltion_Counter = alarm2_minute;
         }
-        if(buttonPressedCount == 3) // end 
+        if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
           update_eeprom = true;
@@ -1009,7 +1105,7 @@ void setAlarmMenu()
       }
       else
       {
-        printStr(jp("  SET ALARM 3  "), 0 ,0);
+        printStr(jp("   SET ALARM 3  "), 0 ,0);
 
         if(encoderPosition > lastEncoderPosition)   { alarmSecltion_Counter +=1; }
         if(encoderPosition < lastEncoderPosition)   { alarmSecltion_Counter -=1; }
@@ -1021,12 +1117,17 @@ void setAlarmMenu()
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
         }
-        else // for min and sec
+        if(buttonPressedCount == 2) // for min and sec
         {
           if(alarmSecltion_Counter > 59)
            alarmSecltion_Counter = 0;
           if(alarmSecltion_Counter < 0)
            alarmSecltion_Counter = 0;
+        }
+        if(buttonPressedCount == 3) // for alarm on or off
+        {
+          if(encoderPosition > lastEncoderPosition) { alarm3_OnOff_Flag = 1;}
+          if(encoderPosition < lastEncoderPosition) { alarm3_OnOff_Flag = 0;}
         }
 
         char alarm3_Time[10];
@@ -1037,23 +1138,50 @@ void setAlarmMenu()
           case 1:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 5 ,1);
+              printStr(jp("  "), 2 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm3_Time), 5 ,1);
+             {
+              printStr(jp(alarm3_Time), 2 ,1);
+              if(alarm3_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm3_hour = alarmSecltion_Counter; 
             break; 
           case 2:
              if(selection_jumping_millis < millis())
              {
-              printStr(jp("  "), 8 ,1);
+              printStr(jp("  "), 5 ,1);
               selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
              }
              else
-              printStr(jp(alarm3_Time), 5 ,1);
+             {
+              printStr(jp(alarm3_Time), 2 ,1);
+              if(alarm3_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
              alarm3_minute = alarmSecltion_Counter; 
             break; 
+          case 3:
+             if(selection_jumping_millis < millis())
+             {
+              printStr(jp("     "), 10 ,1);
+              selection_jumping_millis = millis() + LCD_JUMPING_INTERVAL; 
+             }
+             else
+             {
+              printStr(jp(alarm3_Time), 2 ,1);
+              if(alarm3_OnOff_Flag)
+               printStr(jp("[ON] "), 10 ,1);
+              else
+               printStr(jp("[OFF]"), 10 ,1);
+             }
+            break;
         }
       }
       
@@ -1072,7 +1200,7 @@ void setAlarmMenu()
           //lcd.clear();
           alarmSecltion_Counter = alarm3_minute;
         }
-        if(buttonPressedCount == 3) // end 
+        if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
           update_eeprom = true;

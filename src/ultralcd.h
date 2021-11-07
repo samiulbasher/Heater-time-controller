@@ -44,7 +44,7 @@
  enum SETTING_MENU {
     SET_DATE_TIME, 
     SET_ALARM,
-    HEATER_OFF
+    HEATER_ON_OFF
  }; 
 
  enum SET_DATE_TIME_MENU {
@@ -63,15 +63,16 @@
 
 
  extern uint8_t update_eeprom;
- extern uint8_t heaterOnFlag;
- extern uint32_t heaterDisableTimerCounter;
 
  extern uint8_t alarm1_hour;
  extern uint8_t alarm1_minute;
+ extern uint8_t alarm1_OnOff_Flag;
  extern uint8_t alarm2_hour;
  extern uint8_t alarm2_minute;
+ extern uint8_t alarm2_OnOff_Flag;
  extern uint8_t alarm3_hour;
  extern uint8_t alarm3_minute;
+ extern uint8_t alarm3_OnOff_Flag;
 
 
 

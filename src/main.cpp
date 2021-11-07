@@ -7,6 +7,7 @@
 #include "config.h"
 #include "avrgpio.h"
 #include "ultralcd.h"
+#include "heater.h"
 #include "command.h"
 #include "DS1302.h"
 #include "times.h"
@@ -14,7 +15,6 @@
 uint8_t update_eeprom = false;
 uint32_t heaterDisableTimerCounter = 0;
 
-uint8_t heaterOnFlag = false;
 
 void setup() 
 {
@@ -34,12 +34,16 @@ void setup()
   lcd_clear();
 
   Load_eeprom(); //load data from eeprom
+  
   //alarm 1 hour and min
 	if(isnan(alarm1_hour)) {
 	 alarm1_hour = 0;
 	}
 	if(isnan(alarm1_minute)) {
 	 alarm1_minute = 0;
+	}
+  if(isnan(alarm1_OnOff_Flag)) {
+	 alarm1_OnOff_Flag = 0;
 	}
   
   //alarm 2 hour and min
@@ -49,6 +53,9 @@ void setup()
 	if(isnan(alarm2_minute)) {
 	 alarm2_minute = 0;
 	}
+  if(isnan(alarm2_OnOff_Flag)) {
+	 alarm2_OnOff_Flag = 0;
+	}
 
   //alarm 3 hour and min
   if(isnan(alarm3_hour)) {
@@ -56,6 +63,9 @@ void setup()
 	}
 	if(isnan(alarm3_minute)) {
 	 alarm3_minute = 0;
+	}
+  if(isnan(alarm3_OnOff_Flag)) {
+	 alarm3_OnOff_Flag = 0;
 	}
 
   readTime(); //read time from DS1302
@@ -72,13 +82,12 @@ void loop() {
 	 Save_eeprom();
 	}
 
-  if(heaterOnFlag)
+  if(isHeaterOn())
   {
     //After turning on the heater, the heater will turn off within 30 minutes
     if(millis() > heaterDisableTimerCounter + 1000L* 60 * 30) 
 	  {
-      heaterOnFlag = false;
-      digitalWrite(HEATER_ON_PIN, LOW);
+      heaterOff();
     }
   }
 }

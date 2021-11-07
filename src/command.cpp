@@ -40,12 +40,15 @@ void Save_eeprom()  {
   int addr = eepromAddr;
   addr += EEPROM_writeAnything(addr, alarm1_hour);     //"alarm1_hour" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm1_minute);   //"alarm1_minute" declared as a extern variable in ultralcd.h
-  
+  addr += EEPROM_writeAnything(addr, alarm1_OnOff_Flag);
+
   addr += EEPROM_writeAnything(addr, alarm2_hour);     //"alarm2_hour" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm2_minute);   //"alarm2_minute" declared as a extern variable in ultralcd.h
+  addr += EEPROM_writeAnything(addr, alarm2_OnOff_Flag);
 
   addr += EEPROM_writeAnything(addr, alarm3_hour);     //"alarm3_hour" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm3_minute);   //"alarm3_minute" declared as a extern variable in ultralcd.h
+  addr += EEPROM_writeAnything(addr, alarm3_OnOff_Flag);
 
   Serial.println("Saving data to the eeprom...");
 }
@@ -54,13 +57,17 @@ void Load_eeprom()  {
   int addr = eepromAddr;
   addr += EEPROM_readAnything(addr, alarm1_hour);
   addr += EEPROM_readAnything(addr, alarm1_minute);
+  addr += EEPROM_readAnything(addr, alarm1_OnOff_Flag);
 
   addr += EEPROM_readAnything(addr, alarm2_hour);
   addr += EEPROM_readAnything(addr, alarm2_minute);
+  addr += EEPROM_readAnything(addr, alarm2_OnOff_Flag);
 
   addr += EEPROM_readAnything(addr, alarm3_hour);
   addr += EEPROM_readAnything(addr, alarm3_minute);
+  addr += EEPROM_readAnything(addr, alarm3_OnOff_Flag);
 }
+
 
 int freeMemory() {
   int free_memory;
