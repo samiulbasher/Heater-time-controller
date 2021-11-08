@@ -208,38 +208,88 @@ void statusUpdate()
 {
   if (lcd_next_update_millis < millis())
   {
-    
-    uint8_t alarmHour = alarm1_hour; 
-    uint8_t alarmMinute = alarm1_minute;
+    uint8_t alarmHour = 0; 
+    uint8_t alarmMinute = 0;
    
-    // if next alarm is in alarm3 then this if condition will work
-    if(hour <= alarm3_hour && alarm3_hour >= alarm2_hour && alarm3_hour >= alarm1_hour)
-    {  
-      if(minute <= alarm3_minute)
-      {
-        alarmHour = alarm3_hour; 
-        alarmMinute = alarm3_minute;
+    // find which is next alarm
+    if((hour <= alarm1_hour && alarm1_OnOff_Flag) || 
+       (hour <= alarm2_hour && alarm2_OnOff_Flag) || 
+       (hour <= alarm3_hour && alarm3_OnOff_Flag))
+    {
+      // if the next alarm is in alarm3 then this if condition will work
+      if(hour <= alarm3_hour && alarm3_hour > alarm2_hour && alarm3_hour > alarm1_hour)
+      {  
+        if(minute <= alarm3_minute)
+        {
+          if(alarm3_OnOff_Flag == true)
+          {
+            alarmHour = alarm3_hour; 
+            alarmMinute = alarm3_minute;
+            Serial.println("alarm3");
+          }
+        }
       }
-    }
 
-    // if next alarm is in alarm2 then this if condition will work
-    if(hour <= alarm2_hour && alarm2_hour >= alarm1_hour && alarm2_hour <= alarm3_hour)
-    {  
-      if(minute <= alarm2_minute)
-      {
-        alarmHour = alarm2_hour;
-        alarmMinute = alarm2_minute; 
+      // if the next alarm is in alarm2 then this if condition will work
+      if(hour <= alarm2_hour && alarm2_hour > alarm1_hour && alarm2_hour < alarm3_hour)
+      {  
+        if(minute <= alarm2_minute)
+        {
+          if(alarm2_OnOff_Flag == true)
+          {
+            alarmHour = alarm2_hour;
+            alarmMinute = alarm2_minute; 
+            Serial.println("alarm2");
+          }
+        }
       }
-    }
 
-    // if next alarm is in alarm1 then this if condition will work
-    if(hour <= alarm1_hour && alarm1_hour >= alarm2_hour  && alarm1_hour >= alarm3_hour)
-    {  
-      if(minute <= alarm1_minute)
-      {
-        alarmHour = alarm1_hour; 
-        alarmMinute = alarm1_minute;
+      // if the next alarm is in alarm1 then this if condition will work
+      if(hour <= alarm1_hour && alarm1_hour < alarm2_hour  && alarm1_hour < alarm3_hour)
+      {  
+        if(minute <= alarm1_minute)
+        {
+          if(alarm1_OnOff_Flag == true)
+          {
+            alarmHour = alarm1_hour; 
+            alarmMinute = alarm1_minute;
+            Serial.println("alarm3");
+          }
+        }
       }
+      Serial.println("if");
+    }
+    // which alarm show first for next day if all alarm finish
+    else
+    {
+      if(alarm1_hour <= alarm2_hour && alarm1_hour <= alarm3_hour)
+      {
+        //if(alarm1_minute <= alarm2_minute && alarm1_minute <= alarm3_minute)
+        {
+          alarmHour = alarm1_hour; 
+          alarmMinute = alarm1_minute;
+          Serial.println("ALARM1");
+        }
+      }
+      if(alarm2_hour <= alarm1_hour && alarm2_hour <= alarm3_hour)
+      {
+        //if(alarm2_hour <= alarm1_hour && alarm2_hour <= alarm3_hour)
+        {
+          alarmHour = alarm2_hour; 
+          alarmMinute = alarm2_minute;
+          Serial.println("ALARM2");
+        }
+      }
+      if(alarm3_hour <= alarm1_hour && alarm3_hour <= alarm2_hour)
+      {
+        //if(alarm3_minute <= alarm1_minute && alarm3_minute <= alarm2_minute)
+        {
+          alarmHour = alarm3_hour; 
+          alarmMinute = alarm3_minute;
+          Serial.println("ALARM3");
+        }
+      }
+      Serial.println("else");
     }
 
     if(alarmHour == hour && alarmMinute == minute)
@@ -257,7 +307,7 @@ void statusUpdate()
     snprintf(alarmTime, sizeof(alarmTime), "%02d:%02d", alarmHour, alarmMinute);
 
     printStr(readTime(), 0, 0);
-    printStr("NEXT H.ON: _____", 0, 1);
+    printStr("NextAlarm: _____", 0, 1);
     printStr(alarmTime, 11, 1);
 
     lcd_next_update_millis = millis() + LCD_UPDATE_INTERVAL; 

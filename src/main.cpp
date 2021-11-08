@@ -50,7 +50,7 @@ void loop() {
   if(isHeaterOn())
   {
     //After turning on the heater, the heater will turn off within 30 minutes
-    if(millis() > heaterDisableTimerCounter + 1000L* 60 * 30) 
+    if(millis() > heaterDisableTimerCounter + 1000L* 60 * 2) 
 	  {
       heaterOff();
     }
