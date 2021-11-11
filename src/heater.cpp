@@ -10,14 +10,14 @@ void heaterOn()
    beeper(1,LONG_BEEP);
    heaterOnOff_Flag = true;
    heaterDisableTimerCounter = millis();
-   digitalWrite(HEATER_ON_PIN, HIGH);
+   digitalWrite(HEATER_PIN, HIGH);
 }
 
 void heaterOff()
 {
    beeper(1,LONG_BEEP);
    heaterOnOff_Flag = false;
-   digitalWrite(HEATER_ON_PIN, LOW);
+   digitalWrite(HEATER_PIN, LOW);
 }
 
 bool isHeaterOn()

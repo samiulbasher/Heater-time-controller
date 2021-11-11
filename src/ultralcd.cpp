@@ -82,14 +82,17 @@ uint8_t alarmSecltion_Counter = 0;
 uint8_t alarm1_OnOff_Flag = 0;
 uint8_t alarm1_hour = 0;
 uint8_t alarm1_minute  = 0;
+char alarm1_setTime[5];
 
 uint8_t alarm2_OnOff_Flag = 0;
 uint8_t alarm2_hour = 0;
 uint8_t alarm2_minute  = 0;
+char alarm2_setTime[5];
 
 uint8_t alarm3_OnOff_Flag = 0;
 uint8_t alarm3_hour = 0;
 uint8_t alarm3_minute  = 0;
+char alarm3_setTime[5];
 
 float temp_homingOffset = 0;
 
@@ -208,10 +211,12 @@ void statusUpdate()
 {
   if (lcd_next_update_millis < millis())
   {
-    uint8_t alarmHour = 0; 
-    uint8_t alarmMinute = 0;
-   
-    // find which is next alarm
+    //uint8_t alarmHour = 0; 
+    //uint8_t alarmMinute = 0;
+
+
+    /*
+        // find which is next alarm
     if((hour <= alarm1_hour && alarm1_OnOff_Flag) || 
        (hour <= alarm2_hour && alarm2_OnOff_Flag) || 
        (hour <= alarm3_hour && alarm3_OnOff_Flag))
@@ -292,7 +297,26 @@ void statusUpdate()
       Serial.println("else");
     }
 
-    if(alarmHour == hour && alarmMinute == minute)
+    */
+
+    char currentTime[5];
+    snprintf(currentTime, sizeof(currentTime), "%02d%02d", hour, minute);
+
+
+    //Serial.println("");
+
+
+
+    //Serial.println(currentTime);
+    //Serial.println(alarm1_setTime);
+    //Serial.println(alarm2_setTime);
+    //Serial.println(alarm3_setTime);
+
+    
+    //Serial.println(alarm3_setTime);
+   
+    //if(std::equal(std::begin(currentTime), std::end(currentTime), std::begin(alarm1_setTime)))
+    if(checkAlarm(alarm1_setTime))
     {
       if(!isHeaterOn())
       {
@@ -303,17 +327,26 @@ void statusUpdate()
     }
 
 
-    char alarmTime[6];
-    snprintf(alarmTime, sizeof(alarmTime), "%02d:%02d", alarmHour, alarmMinute);
-
     printStr(readTime(), 0, 0);
     printStr("NextAlarm: _____", 0, 1);
-    printStr(alarmTime, 11, 1);
+    printStr(alarm1_setTime, 11, 1);
 
     lcd_next_update_millis = millis() + LCD_UPDATE_INTERVAL; 
   }
 }
 
+bool checkAlarm(char alarmTime[5])
+{
+  char currentTime[5];
+  snprintf(currentTime, sizeof(currentTime), "%02d%02d", hour, minute);
+
+  for(int i = 0 ; i < 5; ++i)
+  {
+    if(currentTime[i] != alarmTime[i]) 
+      return false;
+  }
+  return true;
+}
 
 void rotary_buttons_update()
 {
@@ -1004,6 +1037,7 @@ void setAlarmMenu()
         if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
+          snprintf(alarm1_setTime, sizeof(alarm1_setTime), "%02d%02d", alarm1_hour, alarm1_minute); //update alarm1 time 
           update_eeprom = true;
           alarmMenuFlag  = true; 
           manuallySelectAlarmMenu = true; 
@@ -1129,6 +1163,7 @@ void setAlarmMenu()
         if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
+          snprintf(alarm2_setTime, sizeof(alarm2_setTime), "%02d%02d", alarm2_hour, alarm2_minute); //update alarm2 time 
           update_eeprom = true;
           alarmMenuFlag  = true; 
           manuallySelectAlarmMenu = true; 
@@ -1253,6 +1288,7 @@ void setAlarmMenu()
         if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
+          snprintf(alarm3_setTime, sizeof(alarm1_setTime), "%02d%02d", alarm3_hour, alarm3_minute); //update alarm1 time 
           update_eeprom = true;
           statusFlag = true;
           settingMenuFlag = true;

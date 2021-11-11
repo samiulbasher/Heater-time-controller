@@ -43,7 +43,7 @@
     #define DAT 5
     #define RST 4
 
-    #define HEATER_ON_PIN 2
+    #define HEATER_PIN 3
 
 
  #endif    

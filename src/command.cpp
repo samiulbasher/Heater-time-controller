@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #endif
 
+#include <string.h>
 
 #include "config.h"
 #include "command.h"
@@ -38,16 +39,13 @@ template <class T> int EEPROM_readAnything(int &ee, T& value)
 
 void Save_eeprom()  {
   int addr = eepromAddr;
-  addr += EEPROM_writeAnything(addr, alarm1_hour);     //"alarm1_hour" declared as a extern variable in ultralcd.h
-  addr += EEPROM_writeAnything(addr, alarm1_minute);   //"alarm1_minute" declared as a extern variable in ultralcd.h
+  addr += EEPROM_writeAnything(addr, alarm1_setTime);   //"alarm1_setTime" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm1_OnOff_Flag);
 
-  addr += EEPROM_writeAnything(addr, alarm2_hour);     //"alarm2_hour" declared as a extern variable in ultralcd.h
-  addr += EEPROM_writeAnything(addr, alarm2_minute);   //"alarm2_minute" declared as a extern variable in ultralcd.h
+  addr += EEPROM_writeAnything(addr, alarm2_setTime);   //"alarm2_setTime" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm2_OnOff_Flag);
 
-  addr += EEPROM_writeAnything(addr, alarm3_hour);     //"alarm3_hour" declared as a extern variable in ultralcd.h
-  addr += EEPROM_writeAnything(addr, alarm3_minute);   //"alarm3_minute" declared as a extern variable in ultralcd.h
+  addr += EEPROM_writeAnything(addr, alarm3_setTime);   //"alarm2_setTime" declared as a extern variable in ultralcd.h
   addr += EEPROM_writeAnything(addr, alarm3_OnOff_Flag);
 
   Serial.println("Saving data to the eeprom...");
@@ -55,26 +53,25 @@ void Save_eeprom()  {
 
 void Load_eeprom()  {
   int addr = eepromAddr;
-  addr += EEPROM_readAnything(addr, alarm1_hour);
-  if(isnan(alarm1_hour)) {  alarm1_hour = 0;  }
-  addr += EEPROM_readAnything(addr, alarm1_minute);
-  if(isnan(alarm1_minute)) { alarm1_minute = 0; }
+  addr += EEPROM_readAnything(addr, alarm1_setTime);
+  //if(!strlen(alarm1_setTime)) { alarm1_setTime[5] = {0}; }
+
   addr += EEPROM_readAnything(addr, alarm1_OnOff_Flag);
   if(isnan(alarm1_OnOff_Flag)) { alarm1_OnOff_Flag = 0; }
 
 
-  addr += EEPROM_readAnything(addr, alarm2_hour);
-  if(isnan(alarm2_hour)) { alarm2_hour = 0; }
-  addr += EEPROM_readAnything(addr, alarm2_minute);
-  if(isnan(alarm2_minute)) { alarm2_minute = 0; }
+
+  addr += EEPROM_readAnything(addr, alarm2_setTime);
+  //if(isnan(alarm2_setTime[5])) { alarm2_setTime[5] = {0}; }
+
   addr += EEPROM_readAnything(addr, alarm2_OnOff_Flag);
   if(isnan(alarm2_OnOff_Flag)) { alarm2_OnOff_Flag = 0; }
 
 
-  addr += EEPROM_readAnything(addr, alarm3_hour);
-  if(isnan(alarm3_hour)) { alarm3_hour = 0; }
-  addr += EEPROM_readAnything(addr, alarm3_minute);
-  if(isnan(alarm3_minute)) { alarm3_minute = 0; }
+
+  addr += EEPROM_readAnything(addr, alarm3_setTime);
+  //if(!strlen(alarm3_setTime)) { alarm3_setTime[5] = {0}; }
+
   addr += EEPROM_readAnything(addr, alarm3_OnOff_Flag);
   if(isnan(alarm3_OnOff_Flag)) { alarm3_OnOff_Flag = 0; }
 }

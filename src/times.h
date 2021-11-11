@@ -12,7 +12,17 @@
  extern uint8_t date;
 
 
+ extern uint8_t alarm1_hour;
+ extern uint8_t alarm2_hour;
+ extern uint8_t alarm3_hour;
+
+ extern uint8_t alarm1_minute;
+ extern uint8_t alarm2_minute;
+ extern uint8_t alarm3_minute;
+
+
  void rtc_Init();
  void setTime();
  String readTime();
+ void Load_AlarmTime();
 #endif    

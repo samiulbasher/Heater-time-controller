@@ -4,6 +4,8 @@
 
 #include "DS1302.h"
 #include "pins.h"
+#include "times.h"
+#include "ultralcd.h"
 
 // Create a DS1302 object.
 DS1302 rtc(CLK, DAT, RST);
@@ -71,4 +73,22 @@ String readTime()
 
   return String(buf);
   // Print the formatted string to serial so we can see the time.
+}
+
+void Load_AlarmTime()
+{
+  String temp_alarm1Hour = String(alarm1_setTime[0]) + String(alarm1_setTime[1]);
+  alarm1_hour = atoi(temp_alarm1Hour.c_str());
+  String temp_alarm1Minute = String(alarm1_setTime[2]) + String(alarm1_setTime[3]);
+  alarm1_minute = atoi(temp_alarm1Minute.c_str());
+
+  String temp_alarm2Hour = String(alarm2_setTime[0]) + String(alarm2_setTime[1]);
+  alarm2_hour = atoi(temp_alarm2Hour.c_str());
+  String temp_alarm2Minute = String(alarm2_setTime[2]) + String(alarm2_setTime[3]);
+  alarm2_minute = atoi(temp_alarm2Minute.c_str());
+
+  String temp_alarm3Hour = String(alarm3_setTime[0]) + String(alarm3_setTime[1]);
+  alarm3_hour = atoi(temp_alarm3Hour.c_str());
+  String temp_alarm3Minute = String(alarm3_setTime[2]) + String(alarm3_setTime[3]);
+  alarm3_minute = atoi(temp_alarm3Minute.c_str());
 }

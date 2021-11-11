@@ -33,6 +33,7 @@ void setup()
   lcd_clear();
 
   Load_eeprom(); //load data from eeprom
+  Load_AlarmTime();
   readTime(); //read time from DS1302
 }
 
@@ -41,6 +42,8 @@ void loop() {
   // put your main code here, to run repeatedly:
   rotary_buttons_update();
 	lcd_update();
+
+  pinMode(HEATER_PIN, OUTPUT);
 
   if(update_eeprom){
 	 update_eeprom = false;

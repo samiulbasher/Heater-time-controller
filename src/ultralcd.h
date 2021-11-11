@@ -64,14 +64,13 @@
 
  extern uint8_t update_eeprom;
 
- extern uint8_t alarm1_hour;
- extern uint8_t alarm1_minute;
+ extern char alarm1_setTime[5];
  extern uint8_t alarm1_OnOff_Flag;
- extern uint8_t alarm2_hour;
- extern uint8_t alarm2_minute;
+
+ extern char alarm2_setTime[5];
  extern uint8_t alarm2_OnOff_Flag;
- extern uint8_t alarm3_hour;
- extern uint8_t alarm3_minute;
+
+ extern char alarm3_setTime[5];
  extern uint8_t alarm3_OnOff_Flag;
 
 
@@ -92,6 +91,8 @@
  void settingMenu();
  void setDateTimeMenu();
  void setAlarmMenu();
+
+ bool checkAlarm(char alarmTime[5]);
 
  void waitingTime(float s);
  char* jp(const char *text);
