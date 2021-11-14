@@ -79,24 +79,24 @@ uint8_t timeSecltion_Counter = 0;
 uint16_t dateSecltion_Counter = 0;
 uint8_t alarmSecltion_Counter = 0;
 
-uint8_t alarm1_OnOff_Flag = 0;
+uint16_t alarm1Time = 0;
 uint8_t alarm1_hour = 0;
 uint8_t alarm1_minute  = 0;
-char alarm1_setTime[5];
+uint8_t alarm1_OnOff_Flag = 0;
 
-uint8_t alarm2_OnOff_Flag = 0;
+uint16_t alarm2Time = 0;
 uint8_t alarm2_hour = 0;
 uint8_t alarm2_minute  = 0;
-char alarm2_setTime[5];
+uint8_t alarm2_OnOff_Flag = 0;
 
-uint8_t alarm3_OnOff_Flag = 0;
+uint16_t alarm3Time = 0;
 uint8_t alarm3_hour = 0;
 uint8_t alarm3_minute  = 0;
-char alarm3_setTime[5];
+uint8_t alarm3_OnOff_Flag = 0;
+
+bool alarmUpdate_flag = true;
 
 float temp_homingOffset = 0;
-
-
 
 
 bool statusFlag = true;
@@ -211,112 +211,294 @@ void statusUpdate()
 {
   if (lcd_next_update_millis < millis())
   {
-    //uint8_t alarmHour = 0; 
-    //uint8_t alarmMinute = 0;
+    uint16_t alarmTime = 0;
+    Load_AlarmTime();
 
+    char tempCurrentTime[5];
+    snprintf(tempCurrentTime, sizeof(tempCurrentTime), "%02d%02d", hour, minute);
+    uint16_t currentTime = atoi(tempCurrentTime);
 
-    /*
-        // find which is next alarm
-    if((hour <= alarm1_hour && alarm1_OnOff_Flag) || 
-       (hour <= alarm2_hour && alarm2_OnOff_Flag) || 
-       (hour <= alarm3_hour && alarm3_OnOff_Flag))
-    {
-      // if the next alarm is in alarm3 then this if condition will work
-      if(hour <= alarm3_hour && alarm3_hour > alarm2_hour && alarm3_hour > alarm1_hour)
-      {  
-        if(minute <= alarm3_minute)
-        {
-          if(alarm3_OnOff_Flag == true)
-          {
-            alarmHour = alarm3_hour; 
-            alarmMinute = alarm3_minute;
-            Serial.println("alarm3");
-          }
-        }
-      }
-
-      // if the next alarm is in alarm2 then this if condition will work
-      if(hour <= alarm2_hour && alarm2_hour > alarm1_hour && alarm2_hour < alarm3_hour)
-      {  
-        if(minute <= alarm2_minute)
-        {
-          if(alarm2_OnOff_Flag == true)
-          {
-            alarmHour = alarm2_hour;
-            alarmMinute = alarm2_minute; 
-            Serial.println("alarm2");
-          }
-        }
-      }
-
-      // if the next alarm is in alarm1 then this if condition will work
-      if(hour <= alarm1_hour && alarm1_hour < alarm2_hour  && alarm1_hour < alarm3_hour)
-      {  
-        if(minute <= alarm1_minute)
-        {
-          if(alarm1_OnOff_Flag == true)
-          {
-            alarmHour = alarm1_hour; 
-            alarmMinute = alarm1_minute;
-            Serial.println("alarm3");
-          }
-        }
-      }
-      Serial.println("if");
+    //Alarm 1
+    if(alarm1_OnOff_Flag == true && (currentTime <= alarm1Time && alarm1Time < alarm2Time && alarm1Time < alarm3Time))
+    {  
+      alarmTime = alarm1Time; 
+      Serial.println("Alarm1 Case0");
     }
-    // which alarm show first for next day if all alarm finish
+    else if(alarm1_OnOff_Flag == true && (alarm1Time > alarm2Time && currentTime <= alarm1Time && alarm1Time < alarm3Time))
+    {  
+      alarmTime = alarm1Time; 
+      Serial.println("Alarm1 Case1");
+    }
+    else if(alarm1_OnOff_Flag == true && (alarm1Time > alarm3Time && currentTime <= alarm1Time && alarm1Time < alarm2Time))
+    {  
+      alarmTime = alarm1Time; 
+      Serial.println("Alarm1 Case2");
+    }
+    else if(alarm1_OnOff_Flag == true && (alarm1Time > alarm2Time && alarm1Time > alarm3Time && currentTime <= alarm1Time))
+    {  
+      alarmTime = alarm1Time; 
+      Serial.println("Alarm1 Case3");
+    }
+    
+    //Alarm 2
+    else if(alarm2_OnOff_Flag == true && (currentTime <= alarm2Time && alarm2Time < alarm1Time && alarm2Time < alarm3Time))
+    {  
+      alarmTime = alarm2Time; 
+      Serial.println("Alarm2 Case0");
+    }
+    else if(alarm2_OnOff_Flag == true && (alarm2Time > alarm1Time && currentTime <= alarm2Time && alarm2Time < alarm3Time))
+    {  
+      alarmTime = alarm2Time; 
+      Serial.println("Alarm2 Case1");
+    }
+    else if(alarm2_OnOff_Flag == true && (alarm2Time > alarm3Time && currentTime <= alarm2Time && alarm2Time < alarm1Time))
+    {  
+      alarmTime = alarm2Time; 
+      Serial.println("Alarm2 Case2");
+    }
+    else if(alarm2_OnOff_Flag == true && (alarm2Time > alarm1Time && alarm2Time > alarm3Time && currentTime <= alarm2Time))
+    {  
+      alarmTime = alarm2Time; 
+      Serial.println("Alarm2 Case3");
+    }
+
+    //Alarm 3
+    else if(alarm3_OnOff_Flag == true && (currentTime <= alarm3Time && alarm3Time < alarm1Time && alarm3Time < alarm2Time))
+    {  
+      alarmTime = alarm3Time; 
+      Serial.println("Alarm3 Case0");
+    }
+    else if(alarm3_OnOff_Flag == true && (alarm3Time > alarm1Time && currentTime <= alarm3Time && alarm3Time < alarm2Time))
+    {  
+      alarmTime = alarm3Time; 
+      Serial.println("Alarm3 Case1");
+    }
+    else if(alarm3_OnOff_Flag == true && (alarm3Time > alarm2Time && currentTime <= alarm3Time && alarm3Time < alarm1Time))
+    {  
+      alarmTime = alarm3Time; 
+      Serial.println("Alarm3 Case2");
+    }
+    else if(alarm3_OnOff_Flag == true && (alarm3Time > alarm1Time && alarm3Time > alarm2Time && currentTime <= alarm3Time))
+    {  
+      alarmTime = alarm3Time; 
+      Serial.println("Alarm3 Case3");
+    }
+    
+    // If the current time is greater than all three alarms. Then the alarm will display next day's alarm 
     else
     {
-      if(alarm1_hour <= alarm2_hour && alarm1_hour <= alarm3_hour)
+      if(alarm1Time < alarm2Time && alarm1Time < alarm3Time)
       {
-        //if(alarm1_minute <= alarm2_minute && alarm1_minute <= alarm3_minute)
+        if(alarm1_OnOff_Flag)
         {
-          alarmHour = alarm1_hour; 
-          alarmMinute = alarm1_minute;
+          alarmTime = alarm1Time; 
           Serial.println("ALARM1");
         }
-      }
-      if(alarm2_hour <= alarm1_hour && alarm2_hour <= alarm3_hour)
-      {
-        //if(alarm2_hour <= alarm1_hour && alarm2_hour <= alarm3_hour)
+        else
         {
-          alarmHour = alarm2_hour; 
-          alarmMinute = alarm2_minute;
+          if(alarm2Time < alarm3Time)
+          {
+            if(alarm2_OnOff_Flag)
+            {
+              alarmTime = alarm2Time; 
+              Serial.println("ALARM2");
+            }
+            else
+            {
+              if(alarm3_OnOff_Flag)
+              {
+                alarmTime = alarm3Time; 
+                Serial.println("ALARM3");
+              }
+              else
+              {
+                alarmTime = 8888; 
+                Serial.println("ALL ALARM OFF");
+              }
+            }
+          }
+          else if(alarm3Time > alarm1Time)
+          {
+            if(alarm3_OnOff_Flag)
+            {
+              alarmTime = alarm3Time; 
+              Serial.println("ALARM3");
+            }
+            else
+            {
+              if(alarm1_OnOff_Flag)
+              {
+                alarmTime = alarm1Time; 
+                Serial.println("ALARM1");
+              }
+              else
+              {
+                if(alarm2_OnOff_Flag)
+                {
+                  alarmTime = alarm2Time; 
+                  Serial.println("ALARM2");
+                }
+                else
+                {
+                  alarmTime = 8888; 
+                  Serial.println("ALL ALARM OFF");
+                }
+              }
+            }
+          }
+        }
+      }
+      else if(alarm2Time < alarm1Time && alarm2Time < alarm3Time)
+      {
+        if(alarm2_OnOff_Flag)
+        {
+          alarmTime = alarm2Time; 
           Serial.println("ALARM2");
         }
-      }
-      if(alarm3_hour <= alarm1_hour && alarm3_hour <= alarm2_hour)
-      {
-        //if(alarm3_minute <= alarm1_minute && alarm3_minute <= alarm2_minute)
+        else
         {
-          alarmHour = alarm3_hour; 
-          alarmMinute = alarm3_minute;
-          Serial.println("ALARM3");
+          if(alarm1Time < alarm3Time)
+          {
+            if(alarm1_OnOff_Flag)
+            {
+              alarmTime = alarm1Time; 
+              Serial.println("ALARM1");
+            }
+            else
+            {
+              if(alarm3_OnOff_Flag)
+              {
+                alarmTime = alarm3Time; 
+                Serial.println("ALARM3");
+              }
+              else
+              {
+                alarmTime = 8888; 
+                Serial.println("ALL ALARM OFF");
+              }
+            }
+          }
+          else if(alarm3Time < alarm1Time)
+          {
+            if(alarm3_OnOff_Flag)
+            {
+              alarmTime = alarm3Time; 
+              Serial.println("ALARM3");
+            }
+            else
+            {
+              if(alarm1_OnOff_Flag)
+              {
+                alarmTime = alarm1Time; 
+                Serial.println("ALARM1");
+              }
+              else
+              {
+                if(alarm2_OnOff_Flag)
+                {
+                  alarmTime = alarm2Time; 
+                  Serial.println("ALARM2");
+                }
+                else
+                {
+                  alarmTime = 8888; 
+                  Serial.println("ALL ALARM OFF");
+                }
+              }
+            }
+          }
         }
       }
-      Serial.println("else");
+      else if(alarm3Time < alarm1Time && alarm3Time < alarm1Time)
+      {
+        if(alarm3_OnOff_Flag)
+        {
+          alarmTime = alarm3Time; 
+          Serial.println("ALARM3");
+        }
+        else
+        {
+          if(alarm1Time < alarm2Time)
+          {
+            if(alarm1_OnOff_Flag)
+            {
+              alarmTime = alarm1Time; 
+              Serial.println("ALARM1");
+            }
+            else
+            {
+              if(alarm2_OnOff_Flag)
+              {
+                alarmTime = alarm2Time; 
+                Serial.println("ALARM2");
+              }
+              else
+              {
+                if(alarm3_OnOff_Flag)
+                {
+                  alarmTime = alarm3Time; 
+                  Serial.println("ALARM3");
+                }
+                else
+                {
+                  alarmTime = 8888; 
+                  Serial.println("ALL ALARM OFF");
+                }
+              }
+            }
+          }
+          else if(alarm2Time < alarm1Time)
+          {
+            if(alarm2_OnOff_Flag)
+            {
+              alarmTime = alarm2Time; 
+              Serial.println("ALARM2");
+            }
+            else
+            {
+              if(alarm1_OnOff_Flag)
+              {
+                alarmTime = alarm1Time; 
+                Serial.println("ALARM1");
+              }
+              else
+              {
+                if(alarm3_OnOff_Flag)
+                {
+                  alarmTime = alarm3Time; 
+                  Serial.println("ALARM3");
+                }
+                else
+                {
+                  alarmTime = 8888; 
+                  Serial.println("ALL ALARM OFF");
+                }
+              }
+            }
+          }
+        }
+      }
     }
-
-    */
-
-    char currentTime[5];
-    snprintf(currentTime, sizeof(currentTime), "%02d%02d", hour, minute);
-
-
-    //Serial.println("");
-
-
+    //Serial.println(currentTime);
+    //Serial.println(alarmTime);
 
     //Serial.println(currentTime);
     //Serial.println(alarm1_setTime);
     //Serial.println(alarm2_setTime);
     //Serial.println(alarm3_setTime);
 
-    
-    //Serial.println(alarm3_setTime);
-   
-    //if(std::equal(std::begin(currentTime), std::end(currentTime), std::begin(alarm1_setTime)))
-    if(checkAlarm(alarm1_setTime))
+    char alarmTime_buff[5];
+    snprintf(alarmTime_buff, sizeof(alarmTime_buff), "%04d", alarmTime);
+    String aTime = String(alarmTime_buff[0])+String(alarmTime_buff[1])+":"+String(alarmTime_buff[2])+String(alarmTime_buff[3]);
+
+    printStr(readTime(), 0, 0);
+    printStr("NextAlarm: _____", 0, 1);
+    if(alarmTime!=8888)
+      printStr(aTime, 11, 1);
+    else
+      printStr("A.OFF", 11, 1);
+
+    if(currentTime == alarmTime)
     {
       if(!isHeaterOn())
       {
@@ -325,28 +507,10 @@ void statusUpdate()
           heaterOn();
       }
     }
-
-
-    printStr(readTime(), 0, 0);
-    printStr("NextAlarm: _____", 0, 1);
-    printStr(alarm1_setTime, 11, 1);
-
     lcd_next_update_millis = millis() + LCD_UPDATE_INTERVAL; 
   }
 }
 
-bool checkAlarm(char alarmTime[5])
-{
-  char currentTime[5];
-  snprintf(currentTime, sizeof(currentTime), "%02d%02d", hour, minute);
-
-  for(int i = 0 ; i < 5; ++i)
-  {
-    if(currentTime[i] != alarmTime[i]) 
-      return false;
-  }
-  return true;
-}
 
 void rotary_buttons_update()
 {
@@ -1036,9 +1200,9 @@ void setAlarmMenu()
         }
         if(buttonPressedCount == 4) // end 
         {
-          buttonPressedCount=0;
-          snprintf(alarm1_setTime, sizeof(alarm1_setTime), "%02d%02d", alarm1_hour, alarm1_minute); //update alarm1 time 
-          update_eeprom = true;
+          buttonPressedCount=0;       
+          alarmUpdate_flag = true;
+          update_eeprom = true;        
           alarmMenuFlag  = true; 
           manuallySelectAlarmMenu = true; 
           alarmMenuItem = (SET_ALARM_MENU) SET_ALARM_2;
@@ -1163,8 +1327,8 @@ void setAlarmMenu()
         if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
-          snprintf(alarm2_setTime, sizeof(alarm2_setTime), "%02d%02d", alarm2_hour, alarm2_minute); //update alarm2 time 
           update_eeprom = true;
+          alarmUpdate_flag = true;
           alarmMenuFlag  = true; 
           manuallySelectAlarmMenu = true; 
           alarmMenuItem = (SET_ALARM_MENU) SET_ALARM_3;        
@@ -1288,8 +1452,8 @@ void setAlarmMenu()
         if(buttonPressedCount == 4) // end 
         {
           buttonPressedCount=0;
-          snprintf(alarm3_setTime, sizeof(alarm1_setTime), "%02d%02d", alarm3_hour, alarm3_minute); //update alarm1 time 
           update_eeprom = true;
+          alarmUpdate_flag = true;
           statusFlag = true;
           settingMenuFlag = true;
           alarmMenuFlag  = false;      

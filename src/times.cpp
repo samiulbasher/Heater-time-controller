@@ -57,7 +57,7 @@ String readTime()
   date = t.date;
 
 
-  // Format the time and date and insert into the temporary buffer.
+  // Format the time and date and insert into the temporary alarmTime_bufferer.
   
   /*
   char buf[50];
@@ -77,18 +77,35 @@ String readTime()
 
 void Load_AlarmTime()
 {
-  String temp_alarm1Hour = String(alarm1_setTime[0]) + String(alarm1_setTime[1]);
-  alarm1_hour = atoi(temp_alarm1Hour.c_str());
-  String temp_alarm1Minute = String(alarm1_setTime[2]) + String(alarm1_setTime[3]);
-  alarm1_minute = atoi(temp_alarm1Minute.c_str());
+  if(alarmUpdate_flag)
+  {
+    char alarmTime_buffer[5];
 
-  String temp_alarm2Hour = String(alarm2_setTime[0]) + String(alarm2_setTime[1]);
-  alarm2_hour = atoi(temp_alarm2Hour.c_str());
-  String temp_alarm2Minute = String(alarm2_setTime[2]) + String(alarm2_setTime[3]);
-  alarm2_minute = atoi(temp_alarm2Minute.c_str());
+    //load alarm1 time 
+    snprintf(alarmTime_buffer, sizeof(alarmTime_buffer), "%02d%02d", alarm1_hour, alarm1_minute);
+    alarm1Time = atoi(alarmTime_buffer);
 
-  String temp_alarm3Hour = String(alarm3_setTime[0]) + String(alarm3_setTime[1]);
-  alarm3_hour = atoi(temp_alarm3Hour.c_str());
-  String temp_alarm3Minute = String(alarm3_setTime[2]) + String(alarm3_setTime[3]);
-  alarm3_minute = atoi(temp_alarm3Minute.c_str());
+    //load alarm2 time
+    snprintf(alarmTime_buffer, sizeof(alarmTime_buffer), "%02d%02d", alarm2_hour, alarm2_minute);
+    alarm2Time = atoi(alarmTime_buffer);
+
+    //load alarm3 time
+    snprintf(alarmTime_buffer, sizeof(alarmTime_buffer), "%02d%02d", alarm3_hour, alarm3_minute);
+    alarm3Time = atoi(alarmTime_buffer);
+
+    alarmUpdate_flag = false;
+
+    //Serial.println(alarm1Time);
+    //Serial.println(alarm2Time);
+    //Serial.println(alarm3Time);
+
+    /*
+    String temp_alarm1Hour = String(alarm1_setTime[0]) + String(alarm1_setTime[1]);
+    alarm1_hour = atoi(temp_alarm1Hour.c_str());
+    String temp_alarm1Minute = String(alarm1_setTime[2]) + String(alarm1_setTime[3]);
+    alarm1_minute = atoi(temp_alarm1Minute.c_str());
+    String temp_alarm1Time = String(temp_alarm1Hour + temp_alarm1Minute);
+    alarm1Time = atoi(temp_alarm1Time.c_str());
+    */
+  }
 }

@@ -20,6 +20,13 @@
  extern uint8_t alarm2_minute;
  extern uint8_t alarm3_minute;
 
+ extern uint16_t alarm1Time;
+ extern uint16_t alarm2Time;
+ extern uint16_t alarm3Time;
+
+ extern bool alarmUpdate_flag;
+
+
 
  void rtc_Init();
  void setTime();

@@ -64,16 +64,9 @@
 
  extern uint8_t update_eeprom;
 
- extern char alarm1_setTime[5];
  extern uint8_t alarm1_OnOff_Flag;
-
- extern char alarm2_setTime[5];
  extern uint8_t alarm2_OnOff_Flag;
-
- extern char alarm3_setTime[5];
  extern uint8_t alarm3_OnOff_Flag;
-
-
 
 
  void rotaryEncoder_Init();
@@ -92,8 +85,6 @@
  void setDateTimeMenu();
  void setAlarmMenu();
 
- bool checkAlarm(char alarmTime[5]);
-
  void waitingTime(float s);
  char* jp(const char *text);
 
@@ -103,52 +94,52 @@
  void printInt(uint16_t value, uint8_t index, uint8_t line);
  void printFloat(float value, uint8_t index, uint8_t line);
 
-    // //Custom characters
-    // byte chr_arrowleft[8] = {
-    // 	0x00, 0x04, 0x08, 0x1F,
-    // 	0x08, 0x04, 0x00, 0x00
-    // };
-    // byte chr_arrowright[8] = {
-    // 	0x00, 0x04, 0x02, 0x1F,
-    // 	0x02, 0x04, 0x00, 0x00
-    // };
-    // byte chr_arrowup[8] = {
-    // 	0x00, 0x04, 0x0E, 0x15,
-    // 	0x04, 0x04, 0x00, 0x00
-    // };
-    // byte chr_arrowdown[8] = {
-    // 	0x00, 0x04, 0x04, 0x15,
-    // 	0x0E, 0x04, 0x00, 0x00
-    // };
-    // byte chr_slash[8] = {
-    // 	0x00, 0x01, 0x02, 0x04,
-    // 	0x08, 0x10, 0x00, 0x00
-    // };
-    // byte chr_indleft[8] = {
-    // 	0x00, 0x04, 0x08, 0x10,
-    // 	0x08, 0x04, 0x00, 0x00
-    // };
-    // byte chr_indright[8] = {
-    // 	0x00, 0x04, 0x02, 0x01,
-    // 	0x02, 0x04, 0x00, 0x00
-    // };
-    // byte chr_plus[8] = {
-    // 	0x00, 0x04, 0x04, 0x1F,
-    // 	0x04, 0x04, 0x00, 0x00
-    // };
-    // byte chr_minus[8] = {
-    // 	0x00, 0x00, 0x00, 0x1F,
-    // 	0x00, 0x00, 0x00, 0x00
-    // };
+// //Custom characters
+// byte chr_arrowleft[8] = {
+// 	0x00, 0x04, 0x08, 0x1F,
+// 	0x08, 0x04, 0x00, 0x00
+// };
+// byte chr_arrowright[8] = {
+// 	0x00, 0x04, 0x02, 0x1F,
+// 	0x02, 0x04, 0x00, 0x00
+// };
+// byte chr_arrowup[8] = {
+// 	0x00, 0x04, 0x0E, 0x15,
+// 	0x04, 0x04, 0x00, 0x00
+// };
+// byte chr_arrowdown[8] = {
+// 	0x00, 0x04, 0x04, 0x15,
+// 	0x0E, 0x04, 0x00, 0x00
+// };
+// byte chr_slash[8] = {
+// 	0x00, 0x01, 0x02, 0x04,
+// 	0x08, 0x10, 0x00, 0x00
+// };
+// byte chr_indleft[8] = {
+// 	0x00, 0x04, 0x08, 0x10,
+// 	0x08, 0x04, 0x00, 0x00
+// };
+// byte chr_indright[8] = {
+// 	0x00, 0x04, 0x02, 0x01,
+// 	0x02, 0x04, 0x00, 0x00
+// };
+// byte chr_plus[8] = {
+// 	0x00, 0x04, 0x04, 0x1F,
+// 	0x04, 0x04, 0x00, 0x00
+// };
+// byte chr_minus[8] = {
+// 	0x00, 0x00, 0x00, 0x1F,
+// 	0x00, 0x00, 0x00, 0x00
+// };
 
 
-    // /*
-    // 	Clears a desired display line
-    // 	line: int > Line to clear
-    // */
-    // void clearLine(int line) {
-    // 	lcd.setCursor(0, line);
-    // 	lcd.print("                ");
-    // }
+// /*
+// 	Clears a desired display line
+// 	line: int > Line to clear
+// */
+// void clearLine(int line) {
+// 	lcd.setCursor(0, line);
+// 	lcd.print("                ");
+// }
 
 #endif
